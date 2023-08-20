@@ -1,0 +1,64 @@
+> options(digits=3)
+> library(tidyverse)
+> install.packages("titanic")
+> library(titanic)
+
+> titanic <- titanic_train %>%
++     select(Survived, Pclass, Sex, Age, SibSp, Parch, Fare) %>%
++     mutate(Survived = factor(Survived), 
++            Pclass = factor(Pclass),
++            Sex = factor(Sex))
+
+# Строим график плотности возраста с разделением по полу
+> t.plot <- titanic %>%
++     filter(!is.na(Age)) %>%
++     ggplot(aes(x = Age, group = Sex, fill = Sex))
+> t.plot + geom_density(alpha = 0.2, bw = 10)
+
+# Определяем кол-во пассажиров каждого пола
+> titanic %>%
++     filter(Sex %in% c("male", "female")) %>%
++     count(Sex)
+
+# Определяем кол-во пассажиров с возрастом 40 лет с разделением по полу
+> titanic %>%
++     filter(Age == 40 & Sex %in% c("male", "female")) %>%
++     count(Sex)
+
+# определяем параметры среднего и стандартного отклонения в столбце возраста
+> params <- titanic %>%
++     filter(!is.na(Age)) %>%
++     summarize(mean = mean(Age), sd = sd(Age))
+
+# Строим график распределения возраста пассажиров
+> p <- titanic %>%
++     ggplot(aes(sample = Age)) +
++     geom_qq(dparams = params) +
++     geom_abline()
+
+# Строим график выживших и погибших пассажиров с распределением по полу
+> titanic %>%
++     ggplot(aes(x= Survived, fill = Sex)) + 
++     geom_bar(position = position_dodge())
+
+# Строим график плотности возраста с разделением по статусу выживания
+> p <- titanic %>%
++     ggplot(aes(x = Age, y = ..count.., fill = Survived))
+> p + geom_density(alpha = 0.2)
+
+# Создаем боксплот распределения по статусу выживаемости относительно цены купленного билета
+> titanic %>%
++     filter(Fare > 0) %>%
++     ggplot(aes(Survived, Fare)) +
++     geom_boxplot(alpha = 0.2) +
++     scale_y_continuous(trans = "log2") + 
++     geom_jitter()
+
+# Строим гистограмму с наполнением чтобы понять отношение выживаемости к классу размещения 
+> t <- titanic %>%
++     ggplot(aes(x = Pclass, fill = Survived)) +
++     geom_bar()
+> t
+
+# Заполняю столбцы на 100% для лучшей наглядности
+> t + geom_bar(position = position_fill())
